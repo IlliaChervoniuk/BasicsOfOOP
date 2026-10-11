@@ -6,14 +6,16 @@ private:                       // склад класу поділяється �
 	int numerator;             // поле - "змінна" в середині класу
 	int denominator;           // набір полів називають "характеристиками" класу
 	char* name;
+	int gcd(int a, int b);
+	void reduce();
 public:                        // За рекомендаціями ООП поля мають бути приватними,
-	int get_numerator();       // а для доступу до них створюють методи ("функції"), що називають
-	int get_denominator();     // аксесорами (які поділяють на геттери та сеттери)
+	int get_numerator() const;       // а для доступу до них створюють методи ("функції"), що називають
+	int get_denominator() const;     // аксесорами (які поділяють на геттери та сеттери)
 	void set_numerator(int);   // набір методів класу також називають "поведінкою"
 	void set_denominator(int);
-	char* get_name();
+	char* get_name() const;
 	void set_name(char*);
-	std::string to_string();
+	std::string to_string() const;
 
 	fraction_t();                // конструктори - спец. методи, які автоматично запускаються
 	fraction_t(int);             // коли створюються об'єкти даного класу. Вони не мають
@@ -40,4 +42,25 @@ public:                        // За рекомендаціями ООП по�
 	// Вони також поділяються на оператори копіювання та перенесення
 	fraction_t& operator =(const fraction_t& other);      // copy
 	fraction_t& operator =(fraction_t&& other) noexcept;  // move
+
+	void operator +=(const fraction_t& other); // f += f2
+	void operator +=( int n);             // f += 2
+
+	/*
+	Правило опису класів (The Rule Of Six):
+	При описі класів необхідно обов'язково включити до опису
+	- конструктор за замовчанням
+	- конструктор копіювання
+	- конструктор перенесення
+	- оператор = копіювання
+	- оператор = перенесення
+	- деструктор
+	*/
+	friend fraction_t operator *(const fraction_t& f1, const fraction_t& f2);
 };
+
+fraction_t operator *(const fraction_t& f1, const fraction_t& f2);
+fraction_t operator /(const fraction_t& f1, const fraction_t& f2);
+fraction_t operator -(const fraction_t& f); //(A = -B)
+
+std::ostream& operator << (std::ostream& out, const fraction_t& f);
