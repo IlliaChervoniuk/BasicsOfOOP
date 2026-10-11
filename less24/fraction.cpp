@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "fraction.h"
 #include <format>
 #include <iostream>
@@ -40,8 +41,8 @@ fraction_t::fraction_t(fraction_t& other) {
 		size_t len = strlen(other.name) + 1;
 		this->name = new char[len];
 		strcpy(this->name, other.name);
-		//std::cout << " constructor: copy from " << (void*)other.name << " to "
-		//	<< (void*)(this->name) << std::endl;
+		std::cout << "Copy constructor: copy from " << (void*)other.name << " to "
+		 	<< (void*)(this->name) << std::endl;
 	}
 	else {
 		this->name = NULL;
@@ -51,25 +52,42 @@ fraction_t::fraction_t(fraction_t& other) {
 	// A[1/2"Half"] - A[1,2,0x123]     |
 	// B = copy A   - B[1,2,0x123] - strcpy - B[1,2,0x567]
 	// delete A - звільнення 0x123 --> В посилається на видалений ресурс
+
+	/*        A              B               0x123
+	------[1,2,0x123]----[1,2,0x123]--------"Half\0"--------------------------------
+
+	A.name = "1/2"
+			  A              B               0x123
+	------[1,2,0x123]----[1,2,0x123]--------"1/2\0"---------------------------------
+	B.name - ? "1/2"  -- неправильно
+
+		      A              B               0x123          0x567
+	------[1,2,0x123]----[1,2,0x567]--------"Half\0"--------"Half\0"----------------
+
+    Аналогічна ситуація виникає при присвоюванні: А = В - так само необхідно
+	створювати копії полів-покажчиків.
+	Поєднання конструктора копіювання та відповідного оператора "="
+	 називають "семантикою копіювання"
+	*/
 }
 
-fraction_t::fraction_t(fraction_t && other) noexcept {
+fraction_t::fraction_t(fraction_t&& other) noexcept {
 	/* Конструктор перенесення (move constructor) викликається тоді, коли
-	 * інший об'єкт (other) підлягає знищенню, наприклад, коли він передається
-	 * як результат роботи функції.
-	 *
-	 * Конструктор перенесення може "забрати" ресурс іншого об'єкта
-	 * замість того, щоб створювати копію. Але, щоб знищення не запустилось
-	 * автоматично, слід підмінити ресурс іншого об'єкту на NULL
-	 */
-
+	*  інший об'єкт (other) підлягає знищенню, наприклад, коли він передається
+	*  як результат роботи функції.
+	*
+	* Конструктор перенесення може "забрати" ресурс іншого об'єкта
+	* замість того, щоб створювати копію. Але, щоб знищення не запустилось
+	* автоматично, слід підмінити ресурс іншого об'єкту на NULL
+	*/
 	this->numerator = other.numerator;
 	this->denominator = other.denominator;
 	this->name = other.name;
 	other.name = NULL;
-	std::cout << "New constructor: take from " << (void*)this->name << std::endl;
-
+	std::cout << "Move constructor: take from " << (void*)this->name << std::endl;
 }
+
+
 
 char* fraction_t::get_name() {
 	return name;
@@ -100,7 +118,7 @@ void fraction_t::set_denominator(int denominator) {
 std::string fraction_t::to_string() {
 	// форматування рядків - заповнення "формату" - рядка з плейсхолдерами
 	//                    v   v - placeholders
-	return std::format("({0}/{1})", numerator, denominator);
+	return std::format("({0}/{1}{2})", numerator, denominator, (name == NULL ? "" : name));
 	//                                  ^           ^
 	//               дані, які будуть підставлені на міце плейсхолдерів
 }
@@ -110,6 +128,67 @@ fraction_t::~fraction_t() {
 	if (name != NULL) {
 		delete[] name;
 	}
+}
+
+fraction_t fraction_t::operator +(const fraction_t& other) {
+	char* new_name = NULL;
+	if (this->name != NULL && other.name != NULL) {
+		// якщо в обох дробах є імена, то поєднаємо їх через "+"
+		size_t len1 = strlen(this->name);
+		size_t len = len1 + strlen(other.name) + 2;
+		new_name = new char[len];                 // [__________]
+		strcpy(new_name, this->name);             // [Half______]
+		strcpy(new_name + len1, "+");             // [Half+_____]
+		strcpy(new_name + len1 + 1, other.name);  // [Half+Decil]
+	}
+	return fraction_t(
+		this->numerator * other.denominator + this->denominator * other.numerator,
+		this->denominator * other.denominator,
+		new_name);
+	// a/b + c/d = (ad+bc)/bd
+}
+
+fraction_t fraction_t::operator -(const fraction_t &other) {
+    char *new_name = NULL;
+    if (this->name != NULL && other.name != NULL) {
+        size_t len1 = strlen(this->name);
+        size_t len = len1 + strlen(other.name) + 2;
+        new_name = new char[len];
+        strcpy(new_name, this->name);
+        strcpy(new_name + len1, +"-");
+        strcpy(new_name + len1 + 1, other.name);
+    }
+    return fraction_t(
+        this->numerator * other.denominator - this->denominator * other.numerator,
+        this->denominator * other.denominator, new_name);
+
+
+    //a/b + c/d = (ab + bc)/bd
+}
+
+fraction_t& fraction_t::operator =(const fraction_t& other) {
+	this->numerator = other.numerator;
+	this->denominator = other.denominator;
+	if (other.name != NULL) {
+		size_t len = strlen(other.name) + 1;
+		this->name = new char[len];
+		strcpy(this->name, other.name);
+		std::cout << "Copy assignment: copy from " << (void*)other.name << " to "
+		 	<< (void*)(this->name) << std::endl;
+	}
+	else {
+		this->name = NULL;
+	}
+	return *this;
+}
+
+fraction_t& fraction_t::operator =(fraction_t&& other) noexcept {
+	this->numerator = other.numerator;
+	this->denominator = other.denominator;
+	this->name = other.name;
+	other.name = NULL;
+	std::cout << "Move assignment: take from " << (void*)this->name << std::endl;
+	return *this;
 }
 
 /*
