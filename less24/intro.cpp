@@ -29,11 +29,21 @@ void intro() {
 	vector2 v1;
 	vector2 v2(3.5, 7.2, "A");
 	vector2 v3 = v2;
+	vector2 v4(2, 8, "B");
 	v3.setName("A_Copy");
 
-	//std::cout << v1.to_string() << std::endl;
-	//std::cout << v2.to_string() << std::endl;
-	//std::cout << v3.to_string() << std::endl;
+	std::cout << "-----------HW------------" << std::endl;
+	std::cout << v1.to_string() << std::endl;
+	std::cout << v2.to_string() << std::endl;
+	std::cout << v3.to_string() << std::endl;
+
+	std::cout<< v2.to_string()<< " + " << v4.to_string()
+		<<" = " << (v2 + v4).to_string() << std::endl;
+	std::cout<< v2.to_string()<< " - " << v4.to_string()
+		<<" = " << (v2 - v4).to_string() << std::endl;
+
+
+	std::cout << "-------------------------" << std::endl;
 
 	fraction_t d = std::move(fraction_t::decil());//move constructor
 	std::cout<< d << std::endl;

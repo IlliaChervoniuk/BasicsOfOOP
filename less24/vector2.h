@@ -23,5 +23,9 @@ public:
     void setName(const char* name);
     std::string to_string();
 
+    vector2 operator +(const vector2& other);
+    vector2 operator -(const vector2& other);
+    vector2& operator =(const vector2& other);
+    vector2& operator =(vector2&& other) noexcept;
 };
 
