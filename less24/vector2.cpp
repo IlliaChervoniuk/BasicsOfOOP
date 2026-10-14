@@ -55,7 +55,7 @@ void vector2::setName(const char* name) {
     }
 }
 
-std::string vector2::to_string() {
+std::string vector2::to_string() const{
     std::string res = "";
     if (name != nullptr) {
         res += "Vector '" + std::string(name) + "': ";
@@ -115,10 +115,41 @@ vector2& vector2::operator =(const vector2& other) {
 }
 
 vector2& vector2::operator =(vector2&& other) noexcept {
-	this->x = other.y;
-	this->x = other.y;
+	this->x = other.x;
+	this->y = other.y;
 	this->name = other.name;
 	other.name = NULL;
 	std::cout << "Move assignment: take from " << (void*)this->name << std::endl;
 	return *this;
+}
+
+
+vector2 operator *(const vector2& v1, const vector2& v2) {
+    return vector2(
+        v1.x * v2.x,
+        v1.y * v2.y,
+        NULL
+    );
+}
+
+vector2 operator /(const vector2& v1, const vector2& v2) {
+    return vector2(
+        v1.getX() / v2.getX(),
+        v1.getY() / v2.getY(),
+        NULL
+    );
+}
+
+void vector2::operator+=(const vector2 &other) {
+    this->x = this->x  + other.x;
+    this->y = this->y + other.y;
+}
+void vector2::operator-=(const vector2 &other) {
+    this->x = this->x  - other.x;
+    this->y = this->y - other.y;
+}
+
+std::ostream& operator << (std::ostream& out, const vector2& v) {
+    out << v.to_string();
+    return out;
 }

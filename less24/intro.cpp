@@ -42,6 +42,15 @@ void intro() {
 	std::cout<< v2.to_string()<< " - " << v4.to_string()
 		<<" = " << (v2 - v4).to_string() << std::endl;
 
+	v1 = v2 * v4;
+	std::cout << v1 << std::endl;
+
+	v1 = v2 / v4;
+	std::cout << v1 << std::endl;
+
+	v1 += v4;
+	std::cout << v1 << std::endl;
+
 
 	std::cout << "-------------------------" << std::endl;
 
